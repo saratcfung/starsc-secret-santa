@@ -6,7 +6,7 @@ from email.policy import SMTP
 invite=next(i for i in json.loads(Path('.private/invitations.json').read_text()) if i['name']=='Sara')
 if not invite['email']: raise SystemExit('Add the recipient email to the private invitation file first.')
 template=Path('email-template.html').read_text()
-art='https://saratcfung.github.io/starsc-secret-santa/assets/christmas-friends.png'
+art='https://saratcfung.github.io/starsc-secret-santa/assets/christmas-chibi.png'
 body=template.replace('{{NAME}}',html.escape(invite['name'])).replace('{{LINK}}',html.escape(invite['url'],quote=True)).replace('{{ART_URL}}',art)
 Path('.private/sara-invitation.html').write_text(body)
 msg=EmailMessage(policy=SMTP);msg['To']=invite['email'];msg['Subject']='🎀 Sara, a little STARSC Christmas magic awaits!'
