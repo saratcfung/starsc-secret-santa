@@ -1,0 +1,9 @@
+import {DatabaseSync} from 'node:sqlite';import assert from 'node:assert/strict';import {readFileSync,writeFileSync} from 'node:fs';import worker,{draw} from './worker/index.js';
+const db=new DatabaseSync(':memory:');db.exec(readFileSync('drizzle/0000_santa.sql','utf8'));const DB={prepare(sql){const q=db.prepare(sql);let args=[];return{bind(...a){args=a;return this},async run(){return q.run(...args)},async first(){return q.get(...args)}}}};
+const req=(path,data)=>worker.fetch(new Request('https://santa.test'+path,data?{method:'POST',headers:{Origin:'https://santa.test'},body:JSON.stringify(data)}:{}),{DB});
+for(let i=0;i<10000;i++){const d=draw();assert.equal(new Set(d).size,6);assert(d.every((v,j)=>v!==j))}
+const statuses=await Promise.all(Array.from({length:6},()=>req('/api/status')));for(const r of statuses){const s=await r.json();assert.deepEqual(s.registered,Array(6).fill(false));assert(!JSON.stringify(s).includes('recipient'))}
+const original=db.prepare('select data from exchange').get().data;const recipients=[];
+for(let id=0;id<6;id++){const body={id,password:'test-only-password-'+id,register:true};let r=await req('/api/reveal',body);assert.equal(r.status,200);const result=await r.json();recipients.push(result.recipient);r=await req('/api/reveal',{...body,register:false});assert.deepEqual(await r.json(),result);assert.equal((await req('/api/reveal',{...body,password:'incorrect-password'})).status,401)}
+assert.equal(new Set(recipients).size,6);const s=JSON.parse(db.prepare('select data from exchange').get().data);assert(s.every(x=>!('recipient'in x)&&!!x.cipher));assert.notEqual(db.prepare('select data from exchange').get().data,original);
+const page=await (await req('/')).text();writeFileSync('/tmp/starsc-preview.html',page);console.log('PASS: 10,000 valid draws; concurrent initialization; six independent registrations; stable repeat reveals; wrong passwords rejected; claimed results encrypted; no results in status.');
