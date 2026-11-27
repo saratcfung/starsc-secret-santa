@@ -1,17 +1,19 @@
 # STARSC Secret Santa
 
-Christmas gift exchange for Huen, Tiffany, Ashley, Ronnie, Sara and Gu.
+A one-off, static Christmas gift exchange hosted on personal GitHub Pages.
 
-The server creates one permanent random derangement on initialization, before anyone registers. Each person selects their name, creates a password (at least 12 characters), and reveals their already assigned recipient immediately. Repeat visits return the same result. No waiting for others, no self-picks, no duplicate recipients.
+Each emailed invitation carries a random 256-bit decryption key in its URL fragment. The fragment is not sent to GitHub's web server. `draw.json` contains only encrypted assignments and opaque IDs. The browser unlocks one assignment and reveals it after a gift animation. No passwords, database, analytics, or third-party scripts.
 
-## Privacy
+Anyone who has a private invitation link can see that result. The organiser can access locally saved links or sent emails. This is not protection from an organiser with access to those links. Do not forward invitations.
 
-First registration is trust-based: claim only your own name. A password cannot be reset. After registration the recipient is encrypted with AES-256-GCM using a PBKDF2-derived password key; the plaintext assignment for that participant is removed. Passwords are not stored. Strong, unique passphrases are essential. Unclaimed assignments are stored server-side, so this does not prevent inspection by the hosting account owner. The website has no organiser results endpoint or screen. Hosting owners can also modify application code; this is not protection against a malicious host.
+## Permanent draw
 
-## Personal hosting only
+`scripts/prepare-invitations.mjs` generates all six assignments once and refuses to overwrite an existing draw or invitation file. Never delete `draw.json` to reroll. Private invitations are in ignored `.private/invitations.json`; back this file up securely. It must never be committed or published. No email addresses or invitation keys belong in public files.
 
-Deploy `worker/index.js` as a Cloudflare Worker with a D1 database bound as `DB`. Apply `drizzle/0000_santa.sql` once. Use a personal account, never a Nex account. Visit `/api/status` to initialize the permanent draw before sharing the URL. This endpoint returns only registration flags, never recipients.
+## Hosting
 
-GitHub Pages alone cannot run this backend. No production database has been created yet.
+Publish the `main` branch root with GitHub Pages. No Cloudflare or Nex resources are required. On GitHub Free, this requires a public repository. A private repository needs an eligible paid GitHub plan.
 
-Run `npm test` with Node 26 (built-in SQLite). Tests use an isolated in-memory database and do not generate or inspect production results.
+## Validation
+
+Run `npm test`. Tests check the real encrypted draw without printing results and verify wrong keys cannot unlock it.
