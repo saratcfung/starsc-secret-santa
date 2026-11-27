@@ -17,3 +17,9 @@ Publish the `main` branch root with GitHub Pages. No Cloudflare or Nex resources
 ## Validation
 
 Run `npm test`. Tests check the real encrypted draw without printing results and verify wrong keys cannot unlock it.
+
+## Invitation email
+
+`email-template.html` is the public, reusable illustrated email template. It contains no addresses or private links. `python3 scripts/prepare-email.py` renders Sara's HTML and multipart `.eml` into the ignored `.private/` directory. It does not send mail. The artwork is hosted on the same GitHub Pages site; the button and text still work when an email client blocks images.
+
+The original group photograph is not included in this repository. The published illustration is an anime adaptation made with permission for this personal exchange.
